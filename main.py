@@ -1,32 +1,24 @@
-"""Simple Cashier — Minggu 02 (Class, Object, Attribute, Method).
-
-Data produk yang di Minggu 01 masih berupa dictionary
-sekarang menjadi object dari class Product.
-"""
-
 from models.product import Product
 
-# Satu object Product, dibuat dari class-nya.
 product = Product("P001", "Indomie", 3000, 20)
-
 print("Produk pertama:", product.name)
-print("Subtotal 2 Indomie =",product.subtotal(2))
+print("Subtotal 2 Indomie =", product.subtotal(2))
 print()
 
-# Banyak object, disimpan dalam list. 
 products = [ 
-    Product("P001", "Indomie", 3000, 20), 
-    Product("P002", "Teh Botol", 4000, 15), 
-    Product("P003", "Roti", 7000, 8), 
-] 
- 
-print("=========================") 
-print("     SIMPLE CASHIER") 
-print("=========================") 
+    Product("P001", "Indomie", 3000, 20),
+    Product("P002", "Teh Botol", 4000, 15),
+    Product("P003", "Roti", 7000, 8),
+]
+
+print("=========================")
+print("     SIMPLE CASHIER")
+print("=========================")
 print() 
-for item in products: 
-    print(item.code, item.name, item.price, item.stock) 
- 
+
+for item in products:
+    print(item.code, item.name, item.price, item.stock)
+
 print()
 
 print("--- Masalah Minggu 02 ---")
@@ -37,7 +29,7 @@ indomie = products[0]
 # Sekarang price hanya bisa dibaca, tidak bisa ditulis.
 try:
     indomie.price = -5000
-except AttributeError:
+except ValueError:
     print("Menulis langsung ke price ditolak (property tanpa setter).")
 
 print()
@@ -59,18 +51,28 @@ except ValueError as error:
 try:
     indomie.reduce_stock(0)
 except ValueError as error:
-    print("reduce_stock(0) ->", error)
+    print("reduce_stock(0)     ->", error)
 
 try:
-    indomie.reduce_stock(-3)
+    indomie.reduce_stock(-10)
 except ValueError as error:
-    print("reduce_stock(-3) ->", error)
+    print("reduce_stock(-10)    ->", error)
 
 try:
     indomie.reduce_stock(999)
 except ValueError as error:
-    print("reduce_stock(999) ->", error)
+    print("reduce_stock(999)   ->", error)
+
+try:
+    indomie.price=-5000
+except ValueError as error:
+    print("indomie.price=-5000 ->", error)
+    
+try:
+    indomie.price=5000
+except AttributeError as error:
+    print("indomie.price=5000 ->", error)
 
 print()
 print("Harga akhir:", indomie.price, "| Stock akhir:", indomie.stock)
-print("Percobaan yang gagal tidak mengubah apa pun.")
+print("Percobaan yang gagal tidak mengubah apa pun.") 
