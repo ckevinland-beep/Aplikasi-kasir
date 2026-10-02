@@ -1,50 +1,71 @@
-"""Simple Cashier — Minggu 02 (Class, Object, Attribute, Method).
+"""Simple Cashier — Minggu 04 (Inheritance & Polymorphism).
 
-Data produk yang di Minggu 01 masih berupa dictionary
-sekarang menjadi object dari class Product.
+Menguji Product, FoodProduct, dan DigitalProduct
+dengan inheritance, overriding, dan polymorphism.
 """
 
 from models.product import Product
+from models.food_product import FoodProduct
+from models.digital_product import DigitalProduct
 
-# Satu object Product, dibuat dari class-nya.
-product = Product("P001", "Indomie", 3000, 20)
 
-print("Produk pertama:", product.name)
-print("Subtotal 2 Indomie =",product.subtotal(2))
+products = [
+    Product("P001", "Indomie", 3000, 20),
+    FoodProduct("F001", "Roti", 7000, 8, "2026-12-01"),
+    DigitalProduct("D001", "E-Book Python", 50000, 99),
+]
+
+print("=========================")
+print("     SIMPLE CASHIER")
+print("=========================")
 print()
 
-# Banyak object, disimpan dalam list. 
-products = [ 
-    Product("P001", "Indomie", 3000, 20), 
-    Product("P002", "Teh Botol", 4000, 15), 
-    Product("P003", "Roti", 7000, 8), 
-] 
- 
-print("=========================") 
-print("     SIMPLE CASHIER") 
-print("=========================") 
-print() 
-for item in products: 
-    print(item.code, item.name, item.price, item.stock) 
- 
+print("--- Polymorphism ---")
+
+# Satu list berisi tiga jenis object.
+# Setiap object menjalankan get_description()
+# sesuai dengan class masing-masing.
+for item in products:
+    print(item.code, "|", item.get_description())
+
 print()
 
-print("--- Minggu 01 vs Minggu 02 ---") 
- 
-# Minggu 01 — dictionary. 
-product_dict = {"code": "P001", "name": "Indomie", "price": 3000, "stock": 20} 
-print("dictionary :", product_dict["name"], "subtotal", product_dict["price"] * 2) 
- 
-# Minggu 02 — object. Rumus subtotal tidak lagi ditulis ulang di sini. 
-print("object     :", product.name, "subtotal", product.subtotal(2)) 
- 
-print() 
-print("--- Catatan untuk Minggu 03 ---") 
- 
-# Satu masalah Minggu 01 sudah selesai: perilaku kini menyatu dengan data. 
-# Tetapi datanya masih belum terjaga. 
-products[0].price = -5000 
-products[0].stock = -100 
-print("Harga sekarang:", products[0].price, "(negatif, masih diterima)") 
-print("Stock sekarang:", products[0].stock, "(negatif, masih diterima)") 
-print("Belum ada yang menjaga aturan ini -> encapsulation di Minggu 03.")
+print("--- Yang diwarisi dari Product ---")
+
+roti = products[1]
+
+# subtotal() diwarisi dari Product.
+print("Subtotal 3 Roti:", roti.subtotal(3))
+
+# expiry_date hanya dimiliki oleh FoodProduct.
+print("Kedaluwarsa Roti:", roti.expiry_date)
+
+print()
+
+print("--- Encapsulation Minggu 03 tetap berlaku di subclass ---")
+
+# price tetap read-only.
+try:
+    roti.price = 1
+except AttributeError:
+    print("FoodProduct.price tetap read-only.")
+
+# Harga negatif tetap ditolak.
+try:
+    roti.change_price(-1000)
+except ValueError as error:
+    print("FoodProduct.change_price(-1000) ->", error)
+
+# Pengurangan stock melebihi persediaan tetap ditolak.
+try:
+    roti.reduce_stock(999)
+except ValueError as error:
+    print("FoodProduct.reduce_stock(999) ->", error)
+
+# Pengurangan stock yang valid.
+roti.reduce_stock(3)
+print("Stock Roti setelah terjual 3:", roti.stock)
+
+print()
+print("Aturan ditulis sekali di Product, dipakai semua turunannya.")
+
