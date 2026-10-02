@@ -1,78 +1,71 @@
+"""Simple Cashier — Minggu 04 (Inheritance & Polymorphism).
+
+Menguji Product, FoodProduct, dan DigitalProduct
+dengan inheritance, overriding, dan polymorphism.
+"""
+
 from models.product import Product
+from models.food_product import FoodProduct
+from models.digital_product import DigitalProduct
 
-product = Product("P001", "Indomie", 3000, 20)
-print("Produk pertama:", product.name)
-print("Subtotal 2 Indomie =", product.subtotal(2))
-print()
 
-products = [ 
+products = [
     Product("P001", "Indomie", 3000, 20),
-    Product("P002", "Teh Botol", 4000, 15),
-    Product("P003", "Roti", 7000, 8),
+    FoodProduct("F001", "Roti", 7000, 8, "2026-12-01"),
+    DigitalProduct("D001", "E-Book Python", 50000, 99),
 ]
 
 print("=========================")
 print("     SIMPLE CASHIER")
 print("=========================")
-print() 
+print()
 
+print("--- Polymorphism ---")
+
+# Satu list berisi tiga jenis object.
+# Setiap object menjalankan get_description()
+# sesuai dengan class masing-masing.
 for item in products:
-    print(item.code, item.name, item.price, item.stock)
+    print(item.code, "|", item.get_description())
 
 print()
 
-print("--- Masalah Minggu 02 ---")
+print("--- Yang diwarisi dari Product ---")
 
-indomie = products[0]
+roti = products[1]
 
-# Di Minggu 02 baris ini mengubah harga menjadi negatif tanpa perlawanan.
-# Sekarang price hanya bisa dibaca, tidak bisa ditulis.
-try:
-    indomie.price = -5000
-except ValueError:
-    print("Menulis langsung ke price ditolak (property tanpa setter).")
+# subtotal() diwarisi dari Product.
+print("Subtotal 3 Roti:", roti.subtotal(3))
 
-print()
-print("--- Perubahan lewat method ---")
-
-indomie.change_price(3500)
-print("Harga baru:", indomie.price)
-
-indomie.reduce_stock(5)
-print("Stock setelah terjual 5:", indomie.stock)
-print()
-print("--- Setiap aturan diuji ---")
-
-try:
-    indomie.change_price(-5000)
-except ValueError as error:
-    print("change_price(-5000) ->", error)
-
-try:
-    indomie.reduce_stock(0)
-except ValueError as error:
-    print("reduce_stock(0)     ->", error)
-
-try:
-    indomie.reduce_stock(-10)
-except ValueError as error:
-    print("reduce_stock(-10)    ->", error)
-
-try:
-    indomie.reduce_stock(999)
-except ValueError as error:
-    print("reduce_stock(999)   ->", error)
-
-try:
-    indomie.price=-5000
-except ValueError as error:
-    print("indomie.price=-5000 ->", error)
-    
-try:
-    indomie.price=5000
-except AttributeError as error:
-    print("indomie.price=5000 ->", error)
+# expiry_date hanya dimiliki oleh FoodProduct.
+print("Kedaluwarsa Roti:", roti.expiry_date)
 
 print()
-print("Harga akhir:", indomie.price, "| Stock akhir:", indomie.stock)
-print("Percobaan yang gagal tidak mengubah apa pun.") 
+
+print("--- Encapsulation Minggu 03 tetap berlaku di subclass ---")
+
+# price tetap read-only.
+try:
+    roti.price = 1
+except AttributeError:
+    print("FoodProduct.price tetap read-only.")
+
+# Harga negatif tetap ditolak.
+try:
+    roti.change_price(-1000)
+except ValueError as error:
+    print("FoodProduct.change_price(-1000) ->", error)
+
+# Pengurangan stock melebihi persediaan tetap ditolak.
+try:
+    roti.reduce_stock(999)
+except ValueError as error:
+    print("FoodProduct.reduce_stock(999) ->", error)
+
+# Pengurangan stock yang valid.
+roti.reduce_stock(3)
+print("Stock Roti setelah terjual 3:", roti.stock)
+
+print()
+print("Aturan ditulis sekali di Product, dipakai semua turunannya.")
+
