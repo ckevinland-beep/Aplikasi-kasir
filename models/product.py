@@ -24,6 +24,8 @@ class Product:
         self._price = new_price
 
     def reduce_stock(self, quantity):
+        if quantity <= 0:
+            raise ValueError("Quantity must be positive")
         if quantity > self._stock:
             raise ValueError("Insufficient stock")
         self._stock -= quantity
