@@ -1,71 +1,87 @@
-"""Simple Cashier — Minggu 04 (Inheritance & Polymorphism).
+"""Simple Cashier — Minggu 05 (List & Dictionary).
 
-Menguji Product, FoodProduct, dan DigitalProduct
-dengan inheritance, overriding, dan polymorphism.
+Menguji ProductCatalog dengan dictionary sebagai penyimpan
+dan list sebagai hasil tampilan serta pencarian.
 """
 
 from models.product import Product
 from models.food_product import FoodProduct
 from models.digital_product import DigitalProduct
+from models.product_catalog import ProductCatalog
 
 
-products = [
-    Product("P001", "Indomie", 3000, 20),
-    FoodProduct("F001", "Roti", 7000, 8, "2026-12-01"),
-    DigitalProduct("D001", "E-Book Python", 50000, 99),
-]
+catalog = ProductCatalog()
+
+catalog.add(Product("P001", "Indomie", 3000, 20))
+catalog.add(Product("P002", "Teh Botol", 4000, 15))
+catalog.add(Product("P003", "Teh Kotak", 3500, 10))
+catalog.add(FoodProduct("F001", "Roti", 7000, 8, "2026-12-01"))
+catalog.add(DigitalProduct("D001", "E-Book Python", 50000, 99))
+
 
 print("=========================")
-print("     SIMPLE CASHIER")
+print("     SIMPLE CASHIER      ")
 print("=========================")
 print()
 
-print("--- Polymorphism ---")
 
-# Satu list berisi tiga jenis object.
-# Setiap object menjalankan get_description()
-# sesuai dengan class masing-masing.
-for item in products:
+print("--- Daftar produk ---")
+
+# all() mengembalikan list.
+# Yang dibutuhkan di sini adalah urutan produk.
+for item in catalog.all():
     print(item.code, "|", item.get_description())
 
 print()
 
-print("--- Yang diwarisi dari Product ---")
 
-roti = products[1]
+print("--- Ambil produk lewat code ---")
 
-# subtotal() diwarisi dari Product.
-print("Subtotal 3 Roti:", roti.subtotal(3))
+# Dictionary memungkinkan pencarian berdasarkan code
+# tanpa perlu menelusuri seluruh produk.
+found = catalog.get("F001")
 
-# expiry_date hanya dimiliki oleh FoodProduct.
-print("Kedaluwarsa Roti:", roti.expiry_date)
+if found is not None:
+    print("catalog.get('F001') ->", found.get_description())
+
+missing = catalog.get("P999")
+
+print("catalog.get('P999') ->", missing, "(tidak error, hanya None)")
+
+print()
+
+
+print("--- Cari produk lewat nama ---")
+
+# Pencarian berdasarkan potongan nama.
+# Huruf besar dan kecil tidak dibedakan.
+for keyword in ["teh", "TEH", "mie", "kopi"]:
+    hasil = catalog.search(keyword)
+    nama = [item.name for item in hasil] if hasil else "tidak ditemukan"
+    print(f"search({keyword!r}) -> {nama}")
 
 print()
 
-print("--- Encapsulation Minggu 03 tetap berlaku di subclass ---")
 
-# price tetap read-only.
-try:
-    roti.price = 1
-except AttributeError:
-    print("FoodProduct.price tetap read-only.")
+print("--- Hapus produk ---")
 
-# Harga negatif tetap ditolak.
-try:
-    roti.change_price(-1000)
-except ValueError as error:
-    print("FoodProduct.change_price(-1000) ->", error)
+catalog.remove("P002")
 
-# Pengurangan stock melebihi persediaan tetap ditolak.
-try:
-    roti.reduce_stock(999)
-except ValueError as error:
-    print("FoodProduct.reduce_stock(999) ->", error)
+print(
+    "Setelah remove('P002'):",
+    [item.code for item in catalog.all()]
+)
 
-# Pengurangan stock yang valid.
-roti.reduce_stock(3)
-print("Stock Roti setelah terjual 3:", roti.stock)
+# Menghapus code yang sudah tidak ada tidak menyebabkan error.
+catalog.remove("P002")
+
+print("remove('P002') sekali lagi tidak menjatuhkan program.")
 
 print()
-print("Aturan ditulis sekali di Product, dipakai semua turunannya.")
 
+
+print("--- Mengapa dictionary untuk katalog? ---")
+
+print("Katalog dicari berdasarkan code -> dictionary, satu langkah.")
+print("Daftar tampilan mementingkan urutan -> list.")
+print("Hasil pencarian bisa nol/satu/banyak -> list.")
