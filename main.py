@@ -1,87 +1,85 @@
-"""Simple Cashier — Minggu 05 (List & Dictionary).
 
-Menguji ProductCatalog dengan dictionary sebagai penyimpan
-dan list sebagai hasil tampilan serta pencarian.
-"""
+"""Simple Cashier - Minggu 06 (List, Dictionary, Stack & Queue)."""
 
 from models.product import Product
 from models.food_product import FoodProduct
 from models.digital_product import DigitalProduct
 from models.product_catalog import ProductCatalog
+from services.action_history import ActionHistory
+from services.order_queue import OrderQueue
 
 
+# Katalog produk menggunakan dictionary.
 catalog = ProductCatalog()
-
 catalog.add(Product("P001", "Indomie", 3000, 20))
-catalog.add(Product("P002", "Teh Botol", 4000, 15))
-catalog.add(Product("P003", "Teh Kotak", 3500, 10))
 catalog.add(FoodProduct("F001", "Roti", 7000, 8, "2026-12-01"))
 catalog.add(DigitalProduct("D001", "E-Book Python", 50000, 99))
 
+products = catalog.all()
 
 print("=========================")
-print("     SIMPLE CASHIER      ")
+print("     SIMPLE CASHIER")
 print("=========================")
-print()
 
-
-print("--- Daftar produk ---")
-
-# all() mengembalikan list.
-# Yang dibutuhkan di sini adalah urutan produk.
-for item in catalog.all():
+print("\n--- Katalog Produk (Dictionary) ---")
+for item in products:
     print(item.code, "|", item.get_description())
 
-print()
+print("\nCari produk dengan kode P001:")
+print(catalog.get("P001").get_description())
 
+print("\nCari produk dengan nama Roti:")
+for item in catalog.search("roti"):
+    print(item.get_description())
 
-print("--- Ambil produk lewat code ---")
+print("\n--- Inheritance & Polymorphism ---")
+roti = catalog.get("F001")
+print("Subtotal 3 Roti:", roti.subtotal(3))
+print("Kedaluwarsa Roti:", roti.expiry_date)
 
-# Dictionary memungkinkan pencarian berdasarkan code
-# tanpa perlu menelusuri seluruh produk.
-found = catalog.get("F001")
+print("\n--- Validasi Produk ---")
+try:
+    roti.price = 1
+except AttributeError:
+    print("Harga tetap read-only.")
 
-if found is not None:
-    print("catalog.get('F001') ->", found.get_description())
+try:
+    roti.change_price(-1000)
+except ValueError as error:
+    print("Harga negatif ditolak:", error)
 
-missing = catalog.get("P999")
+try:
+    roti.reduce_stock(999)
+except ValueError as error:
+    print("Stok berlebih ditolak:", error)
 
-print("catalog.get('P999') ->", missing, "(tidak error, hanya None)")
+roti.reduce_stock(3)
+print("Stok Roti setelah terjual 3:", roti.stock)
 
-print()
+print("\n--- Antrean Order (FIFO) ---")
+queue = OrderQueue()
+queue.enqueue("ORD-001 Indomie x2")
+queue.enqueue("ORD-002 Teh Botol x1")
+queue.enqueue("ORD-003 Roti x3")
 
+print("Keluar:", queue.dequeue())
+print("Keluar:", queue.dequeue())
+print("Keluar:", queue.dequeue())
+print("Antrean kosong:", queue.dequeue())
 
-print("--- Cari produk lewat nama ---")
+print("\n--- Riwayat Tindakan (LIFO) ---")
+history = ActionHistory()
+history.push("tambah Indomie x2")
+history.push("tambah Teh Botol x1")
+history.push("tambah Roti x3")
 
-# Pencarian berdasarkan potongan nama.
-# Huruf besar dan kecil tidak dibedakan.
-for keyword in ["teh", "TEH", "mie", "kopi"]:
-    hasil = catalog.search(keyword)
-    nama = [item.name for item in hasil] if hasil else "tidak ditemukan"
-    print(f"search({keyword!r}) -> {nama}")
+print("Undo:", history.pop())
+print("Undo:", history.pop())
+print("Undo:", history.pop())
+print("Riwayat kosong:", history.pop())
 
-print()
-
-
-print("--- Hapus produk ---")
-
-catalog.remove("P002")
-
-print(
-    "Setelah remove('P002'):",
-    [item.code for item in catalog.all()]
-)
-
-# Menghapus code yang sudah tidak ada tidak menyebabkan error.
-catalog.remove("P002")
-
-print("remove('P002') sekali lagi tidak menjatuhkan program.")
-
-print()
-
-
-print("--- Mengapa dictionary untuk katalog? ---")
-
-print("Katalog dicari berdasarkan code -> dictionary, satu langkah.")
-print("Daftar tampilan mementingkan urutan -> list.")
-print("Hasil pencarian bisa nol/satu/banyak -> list.")
+print("\n--- Struktur Data ---")
+print("Dictionary: menyimpan dan mencari produk berdasarkan kode.")
+print("List: menampilkan daftar produk.")
+print("Queue: order pertama masuk, pertama dilayani (FIFO).")
+print("Stack: tindakan terakhir dilakukan, pertama dibatalkan (LIFO).")
