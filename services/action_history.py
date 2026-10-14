@@ -7,16 +7,16 @@ Yang dibatalkan selalu tindakan yang paling terakhir dilakukan.
 
 class ActionHistory:
     def __init__(self):
-        # List sudah cukup: menambah dan mengambil
-        # sama-sama terjadi di ujung yang sama.
+    # List sudah cukup: menambah dan mengambil
+    # sama-sama terjadi di ujung yang sama.
         self.actions = []
-        
-    def push(self, action):
-        # Tindakan baru ditumpuk di atas.
+    
+    def push(self, action):    
+    # Tindakan baru ditumpuk di atas.
         self.actions.append(action)
-        
+    
     def pop(self):
-        # Yang diambil adalah tumpukan paling atas.
+    # Yang diambil adalah tumpukan paling atas.
         if not self.actions:
             return None
         return self.actions.pop()

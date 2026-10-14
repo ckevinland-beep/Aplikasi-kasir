@@ -18,10 +18,10 @@ class OrderQueue:
         self.items.append(order)
         
     def dequeue(self):
-        # Keluar lewat depan antrean.
+    # Keluar lewat depan antrean.
         if not self.items:
             return None
-        self.items.popleft()
+        return self.items.popleft()
          
     def is_empty(self):
         return not self.items
