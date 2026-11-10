@@ -1,6 +1,6 @@
-"""Simple Cashier — Minggu 08 (UTS / Project Checkpoint).
+"""Simple Cashier - Minggu 09 (Database Persistence).
 
-Program demonstrasi materi Minggu 02–07 secara berurutan.
+Program demonstrasi materi Minggu 02-09 secara berurutan.
 """
 
 from models.product import Product
@@ -12,9 +12,6 @@ from repositories.product_repository import ProductRepository
 from services.action_history import ActionHistory
 from services.order_queue import OrderQueue
 
-PRODUCTS_PATH = "data/products.csv"
-ORDERS_PATH = "data/orders.json"
-
 
 def judul(teks):
     print()
@@ -23,11 +20,11 @@ def judul(teks):
 
 print("=========================")
 print("     SIMPLE CASHIER")
-print("   UTS Checkpoint W01-07")
+print("   Week 09 - SQLite")
 print("=========================")
 
 # ------------------------------------------------------------------
-# Minggu 02–03 — Class, Object, Encapsulation
+# Minggu 02-03 - Class, Object, Encapsulation
 # ------------------------------------------------------------------
 judul("W02-03 Class, Object, Encapsulation")
 
@@ -50,7 +47,7 @@ except ValueError as error:
     print("reduce_stock(999):", error)
 
 # ------------------------------------------------------------------
-# Minggu 04 — Inheritance & Polymorphism
+# Minggu 04 - Inheritance & Polymorphism
 # ------------------------------------------------------------------
 judul("W04 Inheritance & Polymorphism")
 
@@ -65,23 +62,24 @@ for item in varian:
     print(f"{item.code:5} {item.get_description()}")
 
 # ------------------------------------------------------------------
-# Minggu 07 — Repository & File
+# Minggu 09 - Repository & Database
 # ------------------------------------------------------------------
-judul("W07 Repository & File")
+judul("W09 Repository & Database")
 
-product_repository = ProductRepository(PRODUCTS_PATH)
-order_repository = OrderRepository(ORDERS_PATH)
+product_repository = ProductRepository()
+order_repository = OrderRepository()
 
 catalog = ProductCatalog()
 
 for product in product_repository.load():
     catalog.add(product)
 
-print("Dimuat dari", PRODUCTS_PATH, ":", len(catalog.all()), "produk")
-print("File tidak ada   :", ProductRepository("data/hilang.csv").load())
+print("Dimuat dari SQLite :", len(catalog.all()), "produk")
+print("get('P001')         :", product_repository.get("P001").name)
+print("get('P999')         :", product_repository.get("P999"))
 
 # ------------------------------------------------------------------
-# Minggu 05 — List & Dictionary
+# Minggu 05 - List & Dictionary
 # ------------------------------------------------------------------
 judul("W05 Catalog: List & Dictionary")
 
@@ -96,7 +94,7 @@ print("search('TEH')             :", [p.name for p in catalog.search("TEH")])
 print("search('kopi')            :", catalog.search("kopi"), "(tidak ditemukan)")
 
 # ------------------------------------------------------------------
-# Minggu 06 — Stack & Queue
+# Minggu 06 - Stack & Queue
 # ------------------------------------------------------------------
 judul("W06 Queue (FIFO) vs Stack (LIFO)")
 
@@ -113,40 +111,61 @@ print("Stack keluar              :", history.pop(), history.pop(), history.pop()
 print("Queue kosong              :", queue.dequeue(), "| Stack kosong:", history.pop())
 
 # ------------------------------------------------------------------
-# Alur penuh — Object -> Struktur Data -> Repository -> File
+# Alur penuh - Object -> Struktur Data -> Repository -> Database
 # ------------------------------------------------------------------
-judul("Alur penuh: Object -> Struktur Data -> Repository -> File")
+judul("Alur penuh: Object -> Struktur Data -> Repository -> Database")
 
-orders = order_repository.load()
 indomie = catalog.get("P001")
 jumlah = 3
 
-print("Stock Indomie    :", indomie.stock)
+print("Stock Indomie sebelum :", indomie.stock)
 
 if indomie.stock >= jumlah:
     indomie.reduce_stock(jumlah)
     history.push(f"jual Indomie x{jumlah}")
 
-    queue.enqueue(f"ORD-{len(orders) + 1:03d} Indomie x{jumlah}")
-    orders.append(queue.dequeue())
+    order = {
+        "order_id": order_repository.next_order_id(),
+        "total": indomie.subtotal(jumlah),
+        "status": "QUEUED",
+        "items": [
+            {
+                "code": indomie.code,
+                "quantity": jumlah,
+            }
+        ],
+    }
 
+    queue.enqueue(order)
+    order_repository.save(queue.dequeue())
     product_repository.save(catalog.all())
-    order_repository.save(orders)
 
-    print("Setelah jual", jumlah, ":", indomie.stock, "-> tersimpan")
+    print("Stock Indomie sesudah :", indomie.stock)
+    print("Order tersimpan       :", order["order_id"], "total", order["total"])
 
-    segar = ProductRepository(PRODUCTS_PATH).load()
-    indomie_lagi = [p for p in segar if p.code == "P001"][0]
+    segar = ProductRepository().get("P001")
+    print("Stock Indomie di database :", segar.stock)
 
-    print("Baca ulang       :", indomie_lagi.stock)
-    print("Order tersimpan :", len(OrderRepository(ORDERS_PATH).load()), "order")
+    orders = OrderRepository().load()
+    print("Jumlah order tersimpan     :", len(orders))
+
+    if orders:
+        terakhir = orders[-1]
+        print(
+            "Order terakhir             :",
+            terakhir["order_id"],
+            terakhir["status"],
+            "dengan",
+            len(terakhir["items"]),
+            "item",
+        )
 else:
-    print("Stock tidak cukup; transaksi dilewati.")
-    print("Isi ulang stock di", PRODUCTS_PATH, "untuk mencoba lagi.")
+    print("Stock tidak cukup - penjualan dilewati.")
 
 # ------------------------------------------------------------------
 # Rantai konsep yang harus bisa dijelaskan
 # ------------------------------------------------------------------
 judul("Rantai yang harus bisa dijelaskan")
-print("Class -> Object -> Data Structure -> Repository -> File")
-print("Minggu 09 mengganti ujung 'File' menjadi 'Database'.")
+print("Class -> Object -> Data Structure -> Repository -> Database")
+print("Berubah : repositories/ (CSV/JSON -> SQL)")
+print("Tetap   : models/, services/ - tidak satu baris pun disentuh")
