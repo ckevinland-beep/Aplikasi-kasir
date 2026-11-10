@@ -1,54 +1,50 @@
-"""ProductRepository — Minggu 07 (File Handling).
-
-Satu-satunya bagian program yang tahu bahwa produk
-kebetulan disimpan dalam file CSV.
-"""
-
-import csv
+import sqlite3
 
 from models.product import Product
-
-FIELDNAMES = ["code", "name", "price", "stock"]
+from repositories.database import DATABASE_PATH, get_connection
 
 
 class ProductRepository:
-    def __init__(self, path):
+    def __init__(self, path=DATABASE_PATH):
         self.path = path
 
     def load(self):
         products = []
 
         try:
-            with open(self.path, newline="") as file:
-                reader = csv.DictReader(file)
-
-                for row in reader:
-                    products.append(
-                        Product(
-                            row["code"],
-                            row["name"],
-                            int(row["price"]),
-                            int(row["stock"]),
-                        )
-                    )
-        except FileNotFoundError:
+            with get_connection(self.path) as connection:
+                rows = connection.execute(
+                    "SELECT code, name, price, stock FROM products"
+                ).fetchall()
+        except sqlite3.OperationalError:
             return []
+
+        for row in rows:
+            products.append(
+                Product(row["code"], row["name"], row["price"], row["stock"])
+            )
 
         return products
 
     def save(self, products):
-        with open(self.path, "w", newline="") as file:
-            writer = csv.DictWriter(
-                file, fieldnames=FIELDNAMES
-            )
-            writer.writeheader()
-
+        with get_connection(self.path) as connection:
             for product in products:
-                writer.writerow(
-                    {
-                        "code": product.code,
-                        "name": product.name,
-                        "price": product.price,
-                        "stock": product.stock,
-                    }
+                connection.execute(
+                    """
+                    INSERT OR REPLACE INTO products (code, name, price, stock)
+                    VALUES (?, ?, ?, ?)
+                    """,
+                    (product.code, product.name, product.price, product.stock),
                 )
+
+    def get(self, code):
+        with get_connection(self.path) as connection:
+            row = connection.execute(
+                "SELECT code, name, price, stock FROM products WHERE code = ?",
+                (code,),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return Product(row["code"], row["name"], row["price"], row["stock"])
